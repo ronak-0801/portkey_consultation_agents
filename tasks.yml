@@ -1,76 +1,56 @@
 tasks:
   data_acquisition:
     description: |
-      Fetch and prepare data for analysis. The data source may be:
-      - Kaggle: Download dataset using the provided URL.
-      - Database: Connect using provided credentials and retrieve relevant data.
-      - Uploaded File: Process the uploaded file for analysis.
-
-      Ensure data integrity and transform data into a structured format suitable for further processing.
-    expected_output: "A structured dataset ready for processing"
+      Analyze {subject} using the data from {data_source}.
+      Extract relevant information and prepare it for analysis.
+      Use the provided tools to search and process the data.
+    expected_output: "A structured dataset ready for analysis"
 
   data_cleaning_and_transformation:
-    description: "
-      Clean and transform the acquired data, handling missing values, outliers, and inconsistencies.
-      Apply data normalization and feature engineering techniques as needed.
-      Document all cleaning and transformation steps with detailed code comments in the shared Python notebook.
-    "
-    expected_output: "
-      A cleaned and transformed dataset (Pandas DataFrame or similar) and entries in the shared Python notebook with detailed code and comments.
-    "
+    description: |
+      Clean and transform the data for {subject}.
+      Handle missing values, outliers, and format issues.
+      Document all transformations applied to the data.
+    expected_output: "Clean and validated dataset"
     agent: data_architect
 
   data_validation_and_quality_checks:
-    description: "
-      Validate the cleaned dataset by checking for data inconsistencies, missing values, and anomalies.
+    description: |
+      Validate the cleaned dataset for {subject}.
+      Check for data inconsistencies, missing values, and anomalies in {data_source}.
       Ensure data accuracy and reliability before proceeding with analysis.
-      Document validation methods, findings, and resolutions in the shared Python notebook.
-    "
-    expected_output: "
-      A validated dataset ready for analysis, along with documentation of validation steps and results in the shared Python notebook.
-    "
+      Document validation methods, findings, and resolutions.
+    expected_output: "A validated dataset ready for analysis"
     agent: data_architect
 
   data_modeling_and_analysis:
-    description: "
-      Develop statistical models and perform in-depth analysis to identify trends, patterns, and correlations.
+    description: |
+      Analyze {subject} data to identify trends, patterns, and correlations.
       Generate key performance indicators (KPIs) and perform hypothesis testing.
-      Document all analysis steps and results with code, charts, and interpretations in the shared Python notebook.
-    "
-    expected_output: "
-      Entries in the shared Python notebook containing statistical models, code, charts, and interpretations of the analysis, including identified KPIs and test results.
-    "
+      Document all analysis steps and results with interpretations.
+    expected_output: "Statistical analysis results with insights and KPIs"
     agent: analytical_engine
 
   interactive_dashboard_creation:
-    description: "
-      Design and create interactive dashboards to visualize key metrics and insights.
-      Use appropriate chart types and visualizations to communicate findings effectively.
-      Integrate the dashboards with the analysis results from the shared Python notebook.
-    "
-    expected_output: "
-      An interactive dashboard (e.g., Plotly Dash or Streamlit app) and entries in the shared Python notebook showing the dashboard creation code and integration with analysis results.
-    "
+    description: |
+      Create visualizations for {subject} analysis using data from {data_source}.
+      Design clear and effective charts to communicate key findings.
+      Ensure all visualizations are properly labeled and explained.
+    expected_output: "Set of informative visualizations with explanations"
     agent: visualization_specialist
 
   strategic_recommendation_development:
-    description: "
-      Analyze the data insights and visualizations to develop actionable strategic recommendations.
-      Consider market trends, competitor analysis, and business objectives.
-      Outline the strategic recommendations with supporting data and visualizations in the shared Python notebook.
-    "
-    expected_output: "
-      Entries in the shared Python notebook containing strategic recommendations, supporting data visualizations, and justifications based on market analysis and business objectives.
-    "
+    description: |
+      Develop strategic recommendations for {subject} based on the analysis.
+      Consider all insights from the data analysis and visualizations.
+      Provide actionable recommendations with supporting evidence.
+    expected_output: "Strategic recommendations with supporting data"
     agent: strategic_planner
 
   final_report_generation:
-    description: "
-      Compile all analysis, visualizations, and strategic recommendations into a comprehensive final report.
-      Ensure the report is well-structured, clear, and concise.
-      Generate a final Python notebook containing all the code, charts, and report sections.
-    "
-    expected_output: "
-      A comprehensive report within the shared Python notebook, containing all analysis, visualizations, and strategic recommendations.
-    "
+    description: |
+      Create a comprehensive report on {subject} analysis.
+      Include all findings, visualizations, and recommendations.
+      Ensure the report is clear, well-structured, and actionable.
+    expected_output: "Comprehensive analysis report"
     agent: strategic_planner
