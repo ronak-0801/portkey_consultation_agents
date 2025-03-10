@@ -1,211 +1,301 @@
-from crewai import Agent, Task, Crew, Process
-from crewai_tools import (
-    SerperDevTool,
+from crewai import Agent, Task, Crew, Flow, LLM
+from crewai_tools.tools import (
     FileReadTool,
-    FileWriteTool,
-    WebsiteSearchTool,
-    DirectoryReadTool,
-    DuckDuckGoSearchTool,
-    WikipediaSearchTool
+    FileWriterTool,
+    CSVSearchTool,
+    WebsiteSearchTool
 )
-from langchain_openai import ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_community.tools.ddg_search.tool import DuckDuckGoSearchRun
+from langchain_community.utilities import WikipediaAPIWrapper
+from langchain.tools import Tool
+from portkey_ai import Portkey, PORTKEY_GATEWAY_URL, createHeaders
 import os
-from dotenv import load_dotenv
+import yaml
+import nbformat
+from pydantic import BaseModel
 
-# Load environment variables
-load_dotenv()
+# Add this class near the top of the file, after imports
+class ReportOutput(BaseModel):
+    content: str
+    summary: str | None = None
 
-# Initialize tools
-search_tool = DuckDuckGoSearchTool()
-wiki_tool = WikipediaSearchTool()
-serper_tool = SerperDevTool(api_key=os.getenv('SERPER_API_KEY'))
-web_search_tool = WebsiteSearchTool()
-file_read_tool = FileReadTool()
-file_write_tool = FileWriteTool()
-directory_tool = DirectoryReadTool()
+# Load configuration files
+def load_config(file_path):
+    with open(file_path, 'r') as file:
+        return yaml.safe_load(file)
 
-# Configure LLMs
-gpt4_llm = ChatOpenAI(
-    model="gpt-4",
-    temperature=0.7,
-    api_key=os.getenv('OPENAI_API_KEY')
+# Load configurations
+agents_config = load_config('agents.yml')
+tasks_config = load_config('tasks.yml')['tasks']
+
+
+# Update the LLM configuration
+gpt4_llm = LLM(
+    provider="openai",
+    model="gpt-4o-mini",     # Changed to gpt-4o-mini
+    api_key=os.getenv('OPENAI_API_KEY'),
+    base_url=PORTKEY_GATEWAY_URL,
+    extra_headers=createHeaders(
+        api_key=os.getenv('PORTKEY_API_KEY'),
+        virtual_key=os.getenv('VIRTUAL_KEY_OPENAI'),
+        trace_id="gpt4"
+    )
 )
 
-gemini_llm = ChatGoogleGenerativeAI(
-    model="gemini-pro",
-    temperature=0.7,
-    google_api_key=os.getenv('GOOGLE_API_KEY')
+gemini_llm = LLM(
+    provider="openai",
+    model="gpt-4o-mini",     # Changed to gpt-4o-mini
+    api_key=os.getenv('OPENAI_API_KEY'),
+    base_url=PORTKEY_GATEWAY_URL,
+    extra_headers=createHeaders(
+        api_key=os.getenv('PORTKEY_API_KEY'),
+        virtual_key=os.getenv('VIRTUAL_KEY_OPENAI'),
+        trace_id="gpt4_2"
+    )
 )
 
-# Creating Agents
+# Creating Agents with essential tools
 data_architect = Agent(
-    role="Data Architect",
-    goal="Gather, structure, and prepare data for analysis",
-    backstory="""You are an experienced Data Architect with expertise in data collection,
-    cleaning, and preparation. You ensure data quality and create efficient data structures.""",
+    role=agents_config['data_architect']['role'],
+    goal=agents_config['data_architect']['goal'],
+    backstory=agents_config['data_architect']['backstory'],
     tools=[
-        serper_tool,
-        search_tool,
-        web_search_tool,
-        file_read_tool,
-        file_write_tool
+        FileReadTool(),
+        FileWriterTool(),
+        CSVSearchTool(),
     ],
-    llm=gemini_llm,
-    verbose=True
+    llm=gemini_llm
+)
+
+# Create Wikipedia tool
+wikipedia = WikipediaAPIWrapper()
+wikipedia_tool = Tool(
+    name="Wikipedia",
+    description="Search Wikipedia articles",
+    func=wikipedia.run
+)
+
+# Create search tools
+ddg_search = DuckDuckGoSearchRun()
+ddg_tool = Tool(
+    name="DuckDuckGo Search",
+    description="Search the web using DuckDuckGo",
+    func=ddg_search.run
 )
 
 analytical_engine = Agent(
-    role="Analytical Engine",
-    goal="Analyze data and extract meaningful insights",
-    backstory="""You are an advanced analytical engine specialized in statistical analysis,
-    pattern recognition, and data interpretation.""",
+    role=agents_config['analytical_engine']['role'],
+    goal=agents_config['analytical_engine']['goal'],
+    backstory=agents_config['analytical_engine']['backstory'],
     tools=[
-        serper_tool,
-        wiki_tool,
-        file_read_tool,
-        directory_tool
+        CSVSearchTool(),
+        WebsiteSearchTool(),
+        wikipedia_tool
     ],
-    llm=gemini_llm,
-    verbose=True
+    llm=gemini_llm
 )
 
 visualization_specialist = Agent(
-    role="Visualization Specialist",
-    goal="Create compelling and informative data visualizations",
-    backstory="""You are a visualization expert who transforms complex data into
-    clear, engaging, and interactive visual representations.""",
+    role=agents_config['visualization_specialist']['role'],
+    goal=agents_config['visualization_specialist']['goal'],
+    backstory=agents_config['visualization_specialist']['backstory'],
     tools=[
-        search_tool,
-        web_search_tool,
-        file_write_tool
+        FileReadTool(),
+        CSVSearchTool(),
+        FileWriterTool()
     ],
-    llm=gemini_llm,
-    verbose=True
+    llm=gemini_llm
 )
 
 strategic_planner = Agent(
-    role="Strategic Planner",
-    goal="Develop strategic recommendations based on analysis",
-    backstory="""You are a strategic planning expert who transforms insights into
-    actionable recommendations and strategic initiatives.""",
+    role=agents_config['strategic_planner']['role'],
+    goal=agents_config['strategic_planner']['goal'],
+    backstory=agents_config['strategic_planner']['backstory'],
     tools=[
-        serper_tool,
-        wiki_tool,
-        web_search_tool,
-        file_read_tool,
-        file_write_tool
+        WebsiteSearchTool(),
+        ddg_tool,
+        wikipedia_tool,
+        FileWriterTool()
     ],
-    llm=gpt4_llm,
-    verbose=True
+    llm=gpt4_llm
 )
 
-def create_tasks(subject):
-    """Create tasks for the analysis crew based on the subject."""
-    
-    data_acquisition_task = Task(
-        description=f"""
-        Gather comprehensive data about {subject}.
-        Include market data, trends, and relevant statistics.
-        Ensure data is from reliable sources and properly cited.
-        Save the gathered data to a file for further processing.
-        """,
-        agent=data_architect
-    )
+# Creating Tasks
+data_acquisition_task = Task(
+    description=str(tasks_config['data_acquisition']['description']).strip(),  # Convert to string and strip whitespace
+    expected_output=str(tasks_config['data_acquisition']['expected_output']).strip(),
+    agent=data_architect
+)
 
-    data_cleaning_task = Task(
-        description=f"""
-        Clean and prepare the gathered data about {subject}.
-        Handle missing values, outliers, and standardize formats.
-        Create a structured dataset ready for analysis.
-        Save the cleaned data to a separate file.
-        """,
-        agent=data_architect,
-        context=[data_acquisition_task]
-    )
+data_cleaning_task = Task(
+    description=str(tasks_config['data_cleaning_and_transformation']['description']).strip(),
+    expected_output=str(tasks_config['data_cleaning_and_transformation']['expected_output']).strip(),
+    agent=data_architect,
+    context=[data_acquisition_task]
+)
 
-    data_analysis_task = Task(
-        description=f"""
-        Perform detailed analysis of the prepared data about {subject}.
-        Include statistical analysis, trend identification, and pattern recognition.
-        Generate key insights and findings.
-        Document your analysis methodology and results.
-        """,
-        agent=analytical_engine,
-        context=[data_cleaning_task]
-    )
+data_analysis_task = Task(
+    description=str(tasks_config['data_modeling_and_analysis']['description']).strip(),
+    expected_output=str(tasks_config['data_modeling_and_analysis']['expected_output']).strip(),
+    agent=analytical_engine,
+    context=[data_cleaning_task]
+)
 
-    dashboard_task = Task(
-        description=f"""
-        Create interactive visualizations for the analysis of {subject}.
-        Include key metrics, trends, and comparative analyses.
-        Ensure visualizations are clear, informative, and engaging.
-        Save visualizations in appropriate formats.
-        """,
-        agent=visualization_specialist,
-        context=[data_analysis_task]
-    )
+dashboard_task = Task(
+    description=str(tasks_config['interactive_dashboard_creation']['description']).strip(),
+    expected_output=str(tasks_config['interactive_dashboard_creation']['expected_output']).strip(),
+    agent=visualization_specialist,
+    context=[data_analysis_task]
+)
 
-    strategy_task = Task(
-        description=f"""
-        Develop strategic recommendations based on the analysis of {subject}.
-        Include actionable insights, risk assessment, and implementation guidelines.
-        Consider market context and competitive landscape.
-        Create a comprehensive strategic report.
-        """,
-        agent=strategic_planner,
-        context=[data_analysis_task, dashboard_task]
-    )
+strategy_task = Task(
+    description=str(tasks_config['strategic_recommendation_development']['description']).strip(),
+    expected_output=str(tasks_config['strategic_recommendation_development']['expected_output']).strip(),
+    agent=strategic_planner,
+    context=[data_analysis_task, dashboard_task]
+)
 
-    return [
+final_report_task = Task(
+    description=str(tasks_config['final_report_generation']['description']).strip(),
+    expected_output=str(tasks_config['final_report_generation']['expected_output']).strip(),
+    agent=strategic_planner,
+    context=[strategy_task, dashboard_task],
+    output_pydantic=ReportOutput
+)
+
+# Defining Flow
+reporting_flow = Flow(
+    tasks=[
         data_acquisition_task,
         data_cleaning_task,
         data_analysis_task,
         dashboard_task,
-        strategy_task
+        strategy_task,
+        final_report_task
     ]
+)
+
+# Creating Crew
+reporting_crew = Crew(
+    agents=[
+        data_architect,
+        analytical_engine,
+        visualization_specialist,
+        strategic_planner
+    ],
+    flows=[reporting_flow],
+    verbose=True
+)
+
+def save_as_notebook(content, file_path="final_report.ipynb"):
+    """
+    Converts content into a Jupyter Notebook and saves it.
+
+    Args:
+        content (str): The markdown or structured content from the AI pipeline.
+        file_path (str): The output notebook filename.
+    """
+    notebook = nbformat.v4.new_notebook()
+    
+    # Handle both string and ReportOutput types
+    content_str = content.content if isinstance(content, ReportOutput) else content
+    
+    # Create a Markdown cell for the report
+    markdown_cell = nbformat.v4.new_markdown_cell(content_str)
+    
+    # Optional: Add a code cell
+    code_cell = nbformat.v4.new_code_cell("print('Notebook Generated Successfully')")
+
+    # Append cells to the notebook
+    notebook.cells.extend([markdown_cell, code_cell])
+
+    # Save as an .ipynb file
+    with open(file_path, "w") as f:
+        nbformat.write(notebook, f)
+
+    print(f"✅ Notebook saved as {file_path}")
 
 def run_analysis(subject):
     """
-    Run the analysis crew with a specific subject.
-    
+    Runs the analysis process and saves the final output as a Jupyter Notebook.
+
     Args:
-        subject (str): The subject or topic to analyze
-    
+        subject (str): The topic to analyze.
+
     Returns:
-        str: The results from the crew's analysis
+        str: Path to the generated Jupyter Notebook.
     """
     try:
-        # Create crew with tasks
-        tasks = create_tasks(subject)
+        print("Starting analysis with subject:", subject)
         
-        crew = Crew(
-            agents=[
-                data_architect,
-                analytical_engine,
-                visualization_specialist,
-                strategic_planner
-            ],
-            tasks=tasks,
-            verbose=2,
-            process=Process.sequential
-        )
+        # Update task descriptions with the subject
+        for task in [data_acquisition_task, data_cleaning_task, data_analysis_task, 
+                    dashboard_task, strategy_task, final_report_task]:
+            if not task.description.endswith(f"Subject: {subject}"):
+                task.description += f"\nSubject: {subject}"
+        
+        print("Tasks updated with subject")
+        
+        # Direct execution of tasks without using Crew or Flow
+        print("Starting direct task execution...")
+        
+        # Execute data acquisition task
+        print("Executing data acquisition task...")
+        data_acquisition_output = data_architect.execute_task(data_acquisition_task)
+        print("Data acquisition completed")
+        
+        # Execute data cleaning task with context
+        print("Executing data cleaning task...")
+        data_cleaning_task.context = [data_acquisition_output]
+        data_cleaning_output = data_architect.execute_task(data_cleaning_task)
+        print("Data cleaning completed")
+        
+        # Execute data analysis task with context
+        print("Executing data analysis task...")
+        data_analysis_task.context = [data_cleaning_output]
+        data_analysis_output = analytical_engine.execute_task(data_analysis_task)
+        print("Data analysis completed")
+        
+        # Execute dashboard creation task with context
+        print("Executing dashboard creation task...")
+        dashboard_task.context = [data_analysis_output]
+        dashboard_output = visualization_specialist.execute_task(dashboard_task)
+        print("Dashboard creation completed")
+        
+        # Execute strategy development task with context
+        print("Executing strategy task...")
+        strategy_task.context = [data_analysis_output, dashboard_output]
+        strategy_output = strategic_planner.execute_task(strategy_task)
+        print("Strategy development completed")
+        
+        # Execute final report generation task with context
+        print("Executing final report task...")
+        final_report_task.context = [strategy_output, dashboard_output]
+        final_output = strategic_planner.execute_task(final_report_task)
+        print("Final report generation completed")
+        
+        # Save the final output as a Jupyter Notebook
+        notebook_path = "final_report.ipynb"
+        save_as_notebook(final_output, notebook_path)
+        print(f"Final report saved to {notebook_path}")
+        
+        return notebook_path
 
-        # Start the crew with the task context
-        result = crew.kickoff()
-        
-        return result
+    except Exception as e:
+        import traceback
+        print(f"❌ Error during analysis: {str(e)}")
+        print("Error type:", type(e))
+        print("Full traceback:")
+        print(traceback.format_exc())
+        return None
     
-    except Exception as e:
-        print(f"Error during analysis: {str(e)}")
-        raise
-
 if __name__ == "__main__":
-    # Example usage
     subject = "Analysis of market trends in the renewable energy sector for 2024"
-    try:
-        results = run_analysis(subject)
-        print("\nAnalysis Results:")
+    
+    results = run_analysis(subject)
+    
+    if results:
+        print("\n=== Analysis Completed Successfully ===")
         print(results)
-    except Exception as e:
-        print(f"An error occurred during analysis: {str(e)}")
+    else:
+        print("\n=== Analysis Failed. Please check logs. ===")

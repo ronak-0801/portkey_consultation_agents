@@ -1,77 +1,77 @@
 tasks:
   data_acquisition:
-    description: """
+    description: "
       Connect to and extract data from multiple sources including SQL databases, PostgreSQL, MongoDB, and CSV/JSON files. 
       Ensure data is extracted with integrity and stored in a structured format suitable for analysis.
       Document all data sources and extraction methods in a single shared Python notebook.
-    """
-    expected_output: """
+    "
+    expected_output: "
       A structured dataset (Pandas DataFrame or similar) and entries in a shared Python notebook detailing data sources, connection methods, and extraction code.
-    """
+    "
     agent: data_architect
 
   data_cleaning_and_transformation:
-    description: """
+    description: "
       Clean and transform the acquired data, handling missing values, outliers, and inconsistencies.
       Apply data normalization and feature engineering techniques as needed.
       Document all cleaning and transformation steps with detailed code comments in the shared Python notebook.
-    """
-    expected_output: """
+    "
+    expected_output: "
       A cleaned and transformed dataset (Pandas DataFrame or similar) and entries in the shared Python notebook with detailed code and comments.
-    """
+    "
     agent: data_architect
 
   data_validation_and_quality_checks:
-    description: """
+    description: "
       Validate the cleaned dataset by checking for data inconsistencies, missing values, and anomalies.
       Ensure data accuracy and reliability before proceeding with analysis.
       Document validation methods, findings, and resolutions in the shared Python notebook.
-    """
-    expected_output: """
+    "
+    expected_output: "
       A validated dataset ready for analysis, along with documentation of validation steps and results in the shared Python notebook.
-    """
+    "
     agent: data_architect
 
   data_modeling_and_analysis:
-    description: """
+    description: "
       Develop statistical models and perform in-depth analysis to identify trends, patterns, and correlations.
       Generate key performance indicators (KPIs) and perform hypothesis testing.
       Document all analysis steps and results with code, charts, and interpretations in the shared Python notebook.
-    """
-    expected_output: """
+    "
+    expected_output: "
       Entries in the shared Python notebook containing statistical models, code, charts, and interpretations of the analysis, including identified KPIs and test results.
-    """
+    "
     agent: analytical_engine
 
   interactive_dashboard_creation:
-    description: """
+    description: "
       Design and create interactive dashboards to visualize key metrics and insights.
       Use appropriate chart types and visualizations to communicate findings effectively.
       Integrate the dashboards with the analysis results from the shared Python notebook.
-    """
-    expected_output: """
+    "
+    expected_output: "
       An interactive dashboard (e.g., Plotly Dash or Streamlit app) and entries in the shared Python notebook showing the dashboard creation code and integration with analysis results.
-    """
+    "
     agent: visualization_specialist
 
   strategic_recommendation_development:
-    description: """
+    description: "
       Analyze the data insights and visualizations to develop actionable strategic recommendations.
       Consider market trends, competitor analysis, and business objectives.
       Outline the strategic recommendations with supporting data and visualizations in the shared Python notebook.
-    """
-    expected_output: """
+    "
+    expected_output: "
       Entries in the shared Python notebook containing strategic recommendations, supporting data visualizations, and justifications based on market analysis and business objectives.
-    """
+    "
     agent: strategic_planner
 
   final_report_generation:
-    description: """
+    description: "
       Compile all analysis, visualizations, and strategic recommendations into a comprehensive final report.
       Ensure the report is well-structured, clear, and concise.
       Generate a final Python notebook containing all the code, charts, and report sections.
-    """
-    expected_output: """
+    "
+    expected_output: "
       A comprehensive report within the shared Python notebook, containing all analysis, visualizations, and strategic recommendations.
-    """
+    "
     agent: strategic_planner  # Changed from visualization_specialist to strategic_planner
