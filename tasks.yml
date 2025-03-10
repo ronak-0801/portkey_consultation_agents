@@ -1,14 +1,13 @@
 tasks:
   data_acquisition:
-    description: "
-      Connect to and extract data from multiple sources including SQL databases, PostgreSQL, MongoDB, and CSV/JSON files. 
-      Ensure data is extracted with integrity and stored in a structured format suitable for analysis.
-      Document all data sources and extraction methods in a single shared Python notebook.
-    "
-    expected_output: "
-      A structured dataset (Pandas DataFrame or similar) and entries in a shared Python notebook detailing data sources, connection methods, and extraction code.
-    "
-    agent: data_architect
+    description: |
+      Fetch and prepare data for analysis. The data source may be:
+      - Kaggle: Download dataset using the provided URL.
+      - Database: Connect using provided credentials and retrieve relevant data.
+      - Uploaded File: Process the uploaded file for analysis.
+
+      Ensure data integrity and transform data into a structured format suitable for further processing.
+    expected_output: "A structured dataset ready for processing"
 
   data_cleaning_and_transformation:
     description: "
@@ -74,4 +73,4 @@ tasks:
     expected_output: "
       A comprehensive report within the shared Python notebook, containing all analysis, visualizations, and strategic recommendations.
     "
-    agent: strategic_planner  # Changed from visualization_specialist to strategic_planner
+    agent: strategic_planner
