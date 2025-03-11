@@ -26,7 +26,7 @@ config = {
 		{
 			"provider": "openai",
 			"api_key": os.getenv('OPENAI_API_KEY'),
-			"weight": 0,
+			"weight": 0.60,
 			"override_params": {
 				"model": "gpt-4o-mini"
 			}
@@ -34,7 +34,7 @@ config = {
 		{
 			"provider": "groq",
 			"api_key": os.getenv('GROQ_API_KEY'),
-			"weight": 1,
+			"weight": 0.40,
 			"override_params": {
 				"model": "llama-3.3-70b-specdec"
 			}

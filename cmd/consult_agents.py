@@ -35,7 +35,7 @@ config = {
 		{
 			"provider": "openai",
 			"virtual_key": "openai-c8972a",
-			"weight": 0.90,
+			"weight": 1,
 			"override_params": {
 				"model": "gpt-4o-mini"
 			}
@@ -43,7 +43,7 @@ config = {
 		{
 			"provider": "groq",
 			"virtual_key": "groq-974c9b",
-			"weight": 0.10,
+			"weight": 0,
 			"override_params": {
 				"model": "llama-3.3-70b-specdec"
 			}
@@ -74,12 +74,12 @@ llm = LLM(
     extra_headers=createHeaders(
         api_key=os.getenv('PORTKEY_API_KEY'),
         virtual_key=os.getenv('VIRTUAL_KEY_OPENAI'),
-        trace_id="gpt_loadbalance",
+        trace_id="gpt_loadbalance_v2",
         config=json.dumps(config)
     )
 )
 
-csv_tool = FileReadTool(file_path='supermarket_sales - Sheet1.csv')
+csv_tool = FileReadTool(file_path='customer_support_tickets.csv')
 
 
 dataset_inference_agent = Agent(

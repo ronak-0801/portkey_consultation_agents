@@ -25,7 +25,7 @@ config = {
 		{
 			"provider": "openai",
 			"virtual_key": "openai-c8972a",
-			"weight": 0,
+			"weight": 0.10,
 			"override_params": {
 				"model": "gpt-4o-mini"
 			}
@@ -33,7 +33,7 @@ config = {
 		{
 			"provider": "groq",
 			"virtual_key": "groq-974c9b",
-			"weight": 1,
+			"weight": 0.90,
 			"override_params": {
 				"model": "llama-3.3-70b-specdec"
 			}
@@ -55,7 +55,7 @@ portkey = Portkey(
 )
 
 response = portkey.chat.completions.create(
-  messages = [{ "role": 'user', "content": 'HI' }],
+  messages = [{ "role": 'user', "content": 'write step by step flow for a customer to buy a product from a supermarket' }],
   model = 'gpt-4o-mini'
 )
 
