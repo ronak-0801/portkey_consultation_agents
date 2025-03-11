@@ -1,3 +1,4 @@
+import json
 from crewai import Agent, Process, Task, Crew, Flow, LLM
 from crewai_tools.tools import (
     FileReadTool,
@@ -11,16 +12,59 @@ from portkey_ai import  PORTKEY_GATEWAY_URL, createHeaders
 import os
 from slack_config import send_slack_message
 
+
+
+
+config = {
+    "cache": { 
+        "mode": "semantic",
+        "max_age": 10000,
+    },
+    "retry": { 
+    "attempts": 3,
+    "on_status_codes": [404,429,500,502,503,504]
+    },
+    "before_request_hooks": [{
+		"id": "pg-guardr-592882"
+	}],
+	"after_request_hooks": [{
+		"id": "pg-guardr-592882"
+	}],
+    "strategy": {
+      "mode": "loadbalance"
+    },
+	"targets": [
+		{
+			"provider": "openai",
+			"virtual_key": "openai-c8972a",
+			"weight": 0.65,
+			"override_params": {
+				"model": "gpt-4o-mini"
+			}
+		},
+		{
+			"provider": "groq",
+			"virtual_key": "groq-974c9b",
+			"weight": 0.35,
+			"override_params": {
+				"model": "llama-3.3-70b-specdec"
+			}
+		}
+	]
+}
+
+
+
 llm = LLM(
     provider="openai",
-    model="gpt-4o-mini",     # Changed to gpt-4o-mini
-    api_key=os.getenv('OPENAI_API_KEY'),
+    # api_key=os.getenv('OPENAI_API_KEY'),
+    model="gpt-4o-mini",
     base_url=PORTKEY_GATEWAY_URL,
     extra_headers=createHeaders(
         api_key=os.getenv('PORTKEY_API_KEY'),
         virtual_key=os.getenv('VIRTUAL_KEY_OPENAI'),
-        trace_id="gpt4_2",
-        config={"cache": { "mode": "simple" }}
+        trace_id="gpt_loadbalance",
+        config=json.dumps(config)
     )
 )
 
