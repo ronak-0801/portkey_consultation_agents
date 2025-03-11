@@ -1,7 +1,8 @@
 from portkey_ai import Portkey
 import os
+from dotenv import load_dotenv
 
-
+load_dotenv()
 
 
 config = {
@@ -20,11 +21,11 @@ config = {
 
      "strategy": {
       "mode": "loadbalance"
-    },
+        },
 	"targets": [
 		{
 			"provider": "openai",
-			"virtual_key": "openai-c8972a",
+			"api_key": os.getenv('OPENAI_API_KEY'),
 			"weight": 0,
 			"override_params": {
 				"model": "gpt-4o-mini"
@@ -32,7 +33,7 @@ config = {
 		},
 		{
 			"provider": "groq",
-			"virtual_key": "groq-974c9b",
+			"api_key": os.getenv('GROQ_API_KEY'),
 			"weight": 1,
 			"override_params": {
 				"model": "llama-3.3-70b-specdec"
@@ -49,14 +50,22 @@ config = {
 
 
 # Calling OpenAI
+# portkey = Portkey(
+#     virtual_key=os.getenv('VIRTUAL_KEY_OPENAI')
+#     config=config
+# )
+
 portkey = Portkey(
-    virtual_key=os.getenv('VIRTUAL_KEY_OPENAI'),
+    provider="openai", # or 'anthropic', 'bedrock', 'groq', etc
+    Authorization=os.getenv('OPENAI_API_KEY'),
     config=config
+    # base_url="http://localhost:8787/public"
 )
 
 response = portkey.chat.completions.create(
-  messages = [{ "role": 'user', "content": 'What is the weather in Tokyo?' }],
+  messages = [{ "role": 'user', "content": 'what is 1 plus 1' }],
   model = 'gpt-4o-mini'
 )
 
 print(response.choices[0].message.content)
+

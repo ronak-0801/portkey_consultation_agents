@@ -11,8 +11,9 @@ from langchain_community.utilities import WikipediaAPIWrapper
 from portkey_ai import  PORTKEY_GATEWAY_URL, createHeaders
 import os
 from slack_config import send_slack_message
+from dotenv import load_dotenv
 
-
+load_dotenv()
 
 
 config = {
@@ -27,9 +28,6 @@ config = {
     "before_request_hooks": [{
 		"id": "pg-guardr-592882"
 	}],
-	"after_request_hooks": [{
-		"id": "pg-guardr-592882"
-	}],
     "strategy": {
       "mode": "loadbalance"
     },
@@ -37,7 +35,7 @@ config = {
 		{
 			"provider": "openai",
 			"virtual_key": "openai-c8972a",
-			"weight": 0.65,
+			"weight": 0.90,
 			"override_params": {
 				"model": "gpt-4o-mini"
 			}
@@ -45,12 +43,25 @@ config = {
 		{
 			"provider": "groq",
 			"virtual_key": "groq-974c9b",
-			"weight": 0.35,
+			"weight": 0.10,
 			"override_params": {
 				"model": "llama-3.3-70b-specdec"
 			}
 		}
 	]
+    # "strategy": {
+    #   "mode": "fallback"
+    # },
+    # "targets": [
+    #     {
+    #         "provider": "openai",
+    #         "virtual_key": "openai-c8972a",
+    #         "override_params": {
+    #             "model": "gpt-4o-mini"
+    #         }
+    #     }
+    # ]   
+
 }
 
 
