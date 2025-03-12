@@ -12,6 +12,7 @@ from portkey_ai import  PORTKEY_GATEWAY_URL, createHeaders
 import os
 from slack_config import send_slack_message
 from dotenv import load_dotenv
+import uuid
 
 load_dotenv()
 
@@ -34,7 +35,7 @@ config = {
 	"targets": [
 		{
 			"provider": "openai",
-			"virtual_key": "openai-c8972a",
+			"virtual_key": os.getenv('VIRTUAL_KEY_OPENAI'),
 			"weight": 1,
 			"override_params": {
 				"model": "gpt-4o-mini"
@@ -42,7 +43,7 @@ config = {
 		},
 		{
 			"provider": "groq",
-			"virtual_key": "groq-974c9b",
+			"virtual_key": os.getenv('VIRTUAL_KEY_GROQ'),
 			"weight": 0,
 			"override_params": {
 				"model": "llama-3.3-70b-specdec"
@@ -68,13 +69,12 @@ config = {
 
 llm = LLM(
     provider="openai",
-    # api_key=os.getenv('OPENAI_API_KEY'),
     model="gpt-4o-mini",
     base_url=PORTKEY_GATEWAY_URL,
     extra_headers=createHeaders(
         api_key=os.getenv('PORTKEY_API_KEY'),
         virtual_key=os.getenv('VIRTUAL_KEY_OPENAI'),
-        trace_id="gpt_loadbalance_v2",
+        trace_id=str(uuid.uuid4()),
         config=json.dumps(config)
     )
 )
