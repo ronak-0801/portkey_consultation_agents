@@ -1,20 +1,12 @@
 import json
-from crewai import Agent, Process, Task, Crew, Flow, LLM
-from crewai_tools.tools import (
-    FileReadTool,
-    FileWriterTool,
-    CSVSearchTool,
-    WebsiteSearchTool
-)
-from langchain_community.tools.ddg_search.tool import DuckDuckGoSearchRun
-from langchain_community.utilities import WikipediaAPIWrapper
-from portkey_ai import  PORTKEY_GATEWAY_URL, createHeaders
+from crewai import Agent, Process, Task, Crew, LLM
+from crewai_tools.tools import FileReadTool
+from portkey_ai import createHeaders, PORTKEY_GATEWAY_URL
 import os
 from slack_config import send_slack_message
-from dotenv import load_dotenv
 import uuid
 
-load_dotenv()
+
 
 
 config = {
@@ -35,7 +27,8 @@ config = {
 	"targets": [
 		{
 			"provider": "openai",
-			"virtual_key": os.getenv('VIRTUAL_KEY_OPENAI'),
+            # "virtual_key": os.getenv('VIRTUAL_KEY_OPENAI'),
+			"api_key": os.getenv('OPENAI_API_KEY'),
 			"weight": 1,
 			"override_params": {
 				"model": "gpt-4o-mini"
@@ -43,7 +36,8 @@ config = {
 		},
 		{
 			"provider": "groq",
-			"virtual_key": os.getenv('VIRTUAL_KEY_GROQ'),
+            # "virtual_key": os.getenv('VIRTUAL_KEY_GROQ'),
+			"api_key": os.getenv('GROQ_API_KEY'),
 			"weight": 0,
 			"override_params": {
 				"model": "llama-3.3-70b-specdec"
@@ -70,10 +64,10 @@ config = {
 llm = LLM(
     provider="openai",
     model="gpt-4o-mini",
-    base_url=PORTKEY_GATEWAY_URL,
+    base_url="http://localhost:8787/v1",
     extra_headers=createHeaders(
         api_key=os.getenv('PORTKEY_API_KEY'),
-        virtual_key=os.getenv('VIRTUAL_KEY_OPENAI'),
+        # virtual_key=os.getenv('VIRTUAL_KEY_OPENAI'),
         trace_id=str(uuid.uuid4()),
         config=json.dumps(config)
     )

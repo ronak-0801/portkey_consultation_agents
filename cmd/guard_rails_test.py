@@ -12,19 +12,13 @@ config = {
     "retry": { 
     "attempts": 3,
     },
-    # "output_guardrails": [{
-    #     "default.contains": {"operator": "none", "words": ["Apple"]},
-    #     "deny": True
-    # }],
-
-
-     "strategy": {
+    "strategy": {
       "mode": "loadbalance"
     },
 	"targets": [
 		{
 			"provider": "openai",
-			"virtual_key": "openai-c8972a",
+			"virtual_key": os.getenv("VIRTUAL_KEY_OPENAI"),
 			"weight": 0.10,
 			"override_params": {
 				"model": "gpt-4o-mini"
@@ -32,7 +26,7 @@ config = {
 		},
 		{
 			"provider": "groq",
-			"virtual_key": "groq-974c9b",
+			"virtual_key": os.getenv("VIRTUAL_KEY_GROQ"),
 			"weight": 0.90,
 			"override_params": {
 				"model": "llama-3.3-70b-specdec"
@@ -55,7 +49,7 @@ portkey = Portkey(
 )
 
 response = portkey.chat.completions.create(
-  messages = [{ "role": 'user', "content": 'write step by step flow for a customer to buy a product from a supermarket' }],
+  messages = [{ "role": 'user', "content": 'Write a greeting msg in one line' }],
   model = 'gpt-4o-mini'
 )
 
