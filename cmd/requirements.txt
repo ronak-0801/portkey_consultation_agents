@@ -1,0 +1,4 @@
+portkey_ai
+crewai
+crewai-tools
+langchain_community
