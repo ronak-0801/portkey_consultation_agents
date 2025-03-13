@@ -79,7 +79,7 @@ llm = LLM(
     )
 )
 
-csv_tool = FileReadTool(file_path='customer_support_tickets.csv')
+csv_tool = FileReadTool(file_path='supermarket_sales - Sheet1.csv')
 
 
 dataset_inference_agent = Agent(
